@@ -119,28 +119,28 @@ class MainMenuState extends MusicBeatState
 		add(magenta);
 
 		storyModechar = new FlxSprite(700,20);
-		storyModechar.frames = Paths.getSparrowAtlas('storymode');
+		storyModechar.frames = Paths.getSparrowAtlas('mainmenuchar/storymode');
 		storyModechar.animation.addByPrefix('idle',"storymode", 24);
 		storyModechar.animation.play('idle');
 		storyModechar.visible = false;
 		add(storyModechar);
 
 		freePlaychar = new FlxSprite(700,200);
-		freePlaychar.frames = Paths.getSparrowAtlas('freeplay');
+		freePlaychar.frames = Paths.getSparrowAtlas('mainmenuchar/freeplay');
 		freePlaychar.animation.addByPrefix('idle',"freeplay", 24);
 		freePlaychar.animation.play('idle');
 		freePlaychar.visible = false;
 		add(freePlaychar);
 
 		optionschar = new FlxSprite(700,240);
-		optionschar.frames = Paths.getSparrowAtlas('options');
+		optionschar.frames = Paths.getSparrowAtlas('mainmenuchar/options');
 		optionschar.animation.addByPrefix('idle',"options", 24);
 		optionschar.animation.play('idle');
 		optionschar.visible = false;
 		add(optionschar);
 
 		creditschar = new FlxSprite(650,150);
-		creditschar.frames = Paths.getSparrowAtlas('credits');
+		creditschar.frames = Paths.getSparrowAtlas('mainmenuchar/credits');
 		creditschar.animation.addByPrefix('idle',"credits", 24);
 		creditschar.animation.play('idle');
 		creditschar.visible = false;
