@@ -6,7 +6,6 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxMath;
 import flixel.util.FlxTimer;
-import flixel.math.FlxPoint;
 import flixel.system.FlxSound;
 import flash.media.Sound;
 
@@ -26,13 +25,8 @@ class Alphabet extends FlxSpriteGroup
 	public var yMult:Float = 120;
 	public var xAdd:Float = 0;
 	public var yAdd:Float = 0;
-	public var changeX:Bool = true;
-	public var changeY:Bool = true;
-	public var scaleX(default, set):Float = 1;
-	public var scaleY(default, set):Float = 1;
 	public var isMenuItem:Bool = false;
 	public var textSize:Float = 1.0;
-	public var letters:Array<AlphaCharacter> = [];
 
 	public var text:String = "";
 
@@ -47,13 +41,10 @@ class Alphabet extends FlxSpriteGroup
 	var splitWords:Array<String> = [];
 
 	public var isBold:Bool = false;
-	//public var lettersArray:Array<AlphaCharacter> = [];
+	public var lettersArray:Array<AlphaCharacter> = [];
 
 	public var finishedText:Bool = false;
 	public var typed:Bool = false;
-		public var distancePerItem:FlxPoint = new FlxPoint(20, 120);
-	public var startPosition:FlxPoint = new FlxPoint(0, 0); //for the calculations
-
 
 	public var typingSpeed:Float = 0.05;
 	public function new(x:Float, y:Float, text:String = "", ?bold:Bool = false, typed:Bool = false, ?typingSpeed:Float = 0.05, ?textSize:Float = 1)
@@ -84,6 +75,13 @@ class Alphabet extends FlxSpriteGroup
 
 	public function changeText(newText:String, newTypingSpeed:Float = -1)
 	{
+		for (i in 0...lettersArray.length) {
+			var letter = lettersArray[0];
+			letter.destroy();
+			remove(letter);
+			lettersArray.remove(letter);
+		}
+		lettersArray = [];
 		splitWords = [];
 		loopNum = 0;
 		xPos = 0;
@@ -182,7 +180,7 @@ class Alphabet extends FlxSpriteGroup
 				}
 
 				add(letter);
-				
+				lettersArray.push(letter);
 
 				lastSprite = letter;
 			}
@@ -344,68 +342,23 @@ class Alphabet extends FlxSpriteGroup
 			finishedText = true;
 		}
 	}
-	
-		private function set_scaleX(value:Float)
-	{
-		if (value == scaleX) return value;
-
-		scale.x = value;
-		for (letter in letters)
-		{
-			if(letter != null)
-			{
-				letter.updateHitbox();
-				//letter.updateLetterOffset();
-				var ratio:Float = (value / letter.spawnScale.x);
-				letter.x = letter.spawnPos.x * ratio;
-			}
-		}
-		scaleX = value;
-		return value;
-	}
-
-	private function set_scaleY(value:Float)
-	{
-		if (value == scaleY) return value;
-
-		scale.y = value;
-		for (letter in letters)
-		{
-			if(letter != null)
-			{
-				letter.updateHitbox();
-				letter.updateLetterOffset();
-				var ratio:Float = (value / letter.spawnScale.y);
-				letter.y = letter.spawnPos.y * ratio;
-			}
-		}
-		scaleY = value;
-		return value;
-	}
-
 
 	override function update(elapsed:Float)
 	{
 		if (isMenuItem)
 		{
-			var lerpVal:Float = CoolUtil.boundTo(elapsed * 9.6, 0, 1);
-			if(changeX)
-				x = FlxMath.lerp(x, (targetY * distancePerItem.x) + startPosition.x, lerpVal);
-			if(changeY)
-				y = FlxMath.lerp(y, (targetY * 1.3 * distancePerItem.y) + startPosition.y, lerpVal);
-		}
-		super.update(elapsed);
-	}
+			var scaledY = FlxMath.remapToRange(targetY, 0, 1, 0, 1.3);
 
-	public function snapToPosition()
-	{
-		if (isMenuItem)
-		{
-			if(changeX)
-				x = (targetY * distancePerItem.x) + startPosition.x;
-			if(changeY)
-				y = (targetY * 1.3 * distancePerItem.y) + startPosition.y;
+			var lerpVal:Float = CoolUtil.boundTo(elapsed * 9.6, 0, 1);
+			y = FlxMath.lerp(y, (scaledY * yMult) + (FlxG.height * 0.48) + yAdd, lerpVal);
+			if(forceX != Math.NEGATIVE_INFINITY) {
+				x = forceX;
+			} else {
+				x = FlxMath.lerp(x, (targetY * 20) + 90 + xAdd, lerpVal);
+			}
 		}
+
+		super.update(elapsed);
 	}
 
 	public function killTheTimer() {
@@ -424,9 +377,6 @@ class AlphaCharacter extends FlxSprite
 	public static var numbers:String = "1234567890";
 
 	public static var symbols:String = "|~#$%()*+-:;<=>@[]^_.,'!?";
-	public var spawnPos:FlxPoint = new FlxPoint();
-	public var spawnScale:FlxPoint = new FlxPoint();
-	public var letterOffset:Array<Float> = [0, 0];
 
 	public var row:Int = 0;
 
@@ -563,14 +513,4 @@ class AlphaCharacter extends FlxSprite
 				y -= 16;
 		}
 	}
-	public function updateLetterOffset()
-	{
-		if (animation.curAnim == null) return;
-
-		if(!animation.curAnim.name.endsWith('bold'))
-		{
-			offset.y += -(110 - height);
-		}
-	}
 }
-
