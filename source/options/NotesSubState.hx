@@ -8,6 +8,7 @@ import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
 import flixel.group.FlxGroup.FlxTypedGroup;
+import flixel.addons.transition.FlxTransitionableState;
 import flixel.math.FlxMath;
 import flixel.text.FlxText;
 import flixel.util.FlxColor;
@@ -63,7 +64,8 @@ class NotesSubState extends MusicBeatSubstate
 		for (i in 0...ClientPrefs.arrowHSV.length) {
 			var yPos:Float = (165 * i) + 35;
 			for (j in 0...3) {
-				var optionText:Alphabet = new Alphabet(posX + (225 * j) + 250, yPos + 60, Std.string(ClientPrefs.arrowHSV[i][j]), true);
+				var optionText:Alphabet = new Alphabet(0, yPos + 60, Std.string(ClientPrefs.arrowHSV[i][j]), true);
+				optionText.x = posX + (225 * j) + 250;
 				grpNumbers.add(optionText);
 			}
 
@@ -83,12 +85,16 @@ class NotesSubState extends MusicBeatSubstate
 			shaderArray.push(newShader);
 		}
 
-		hsbText = new Alphabet(posX + 560, 0, "Hue    Saturation  Brightness", false);
-		hsbText.scaleX = 0.6;
-		hsbText.scaleY = 0.6;
+		hsbText = new Alphabet(0, 0, "Hue    Saturation  Brightness", false, false, 0, 0.65);
+		hsbText.x = posX + 240;
 		add(hsbText);
 
 		changeSelection();
+
+		#if android
+		addVirtualPad(FULL, A_B_C);
+		addPadCamera();
+		#end
 	}
 
 	var changingNote:Bool = false;
@@ -101,7 +107,7 @@ class NotesSubState extends MusicBeatSubstate
 				} else if(controls.UI_RIGHT_P) {
 					updateValue(1);
 					FlxG.sound.play(Paths.sound('scrollMenu'));
-				} else if(controls.RESET) {
+				} else if(controls.RESET #if android || _virtualpad.buttonC.justPressed #end) {
 					resetValue(curSelected, typeSelected);
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 				}
@@ -142,7 +148,7 @@ class NotesSubState extends MusicBeatSubstate
 				changeType(1);
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 			}
-			if(controls.RESET) {
+			if(controls.RESET #if android || _virtualpad.buttonC.justPressed #end) {
 				for (i in 0...3) {
 					resetValue(curSelected, i);
 				}
@@ -173,7 +179,12 @@ class NotesSubState extends MusicBeatSubstate
 
 		if (controls.BACK || (changingNote && controls.ACCEPT)) {
 			if(!changingNote) {
-				close();
+			        #if android
+                                FlxTransitionableState.skipNextTransOut = true;
+			        FlxG.resetState();
+                                #else
+                                close();
+                                #end
 			} else {
 				changeSelection();
 			}
@@ -247,13 +258,8 @@ class NotesSubState extends MusicBeatSubstate
 		}
 
 		var item = grpNumbers.members[(selected * 3) + type];
-		item.text = '0';
-
-		var add = (40 * (item.letters.length - 1)) / 2;
-		for (letter in item.letters)
-		{
-			letter.offset.x += add;
-		}
+		item.changeText('0');
+		item.offset.x = (40 * (item.lettersArray.length - 1)) / 2;
 	}
 	function updateValue(change:Float = 0) {
 		curValue += change;
@@ -278,13 +284,8 @@ class NotesSubState extends MusicBeatSubstate
 		}
 
 		var item = grpNumbers.members[(curSelected * 3) + typeSelected];
-		item.text = Std.string(roundedValue);
-
-		var add = (40 * (item.letters.length - 1)) / 2;
-		for (letter in item.letters)
-		{
-			letter.offset.x += add;
-			if(roundedValue < 0) letter.offset.x += 10;
-		}
+		item.changeText(Std.string(roundedValue));
+		item.offset.x = (40 * (item.lettersArray.length - 1)) / 2;
+		if(roundedValue < 0) item.offset.x += 10;
 	}
 }
